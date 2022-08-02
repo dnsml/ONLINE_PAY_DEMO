@@ -1,6 +1,6 @@
 package com.github.wxpayv3.service.impl;
 
-import com.baomidou.mybatisplus.extension.service.IService;
+
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.github.wxpayv3.entity.Product;
 import com.github.wxpayv3.mapper.ProductMapper;

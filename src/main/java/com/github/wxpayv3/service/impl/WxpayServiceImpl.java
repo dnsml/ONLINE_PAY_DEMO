@@ -3,12 +3,10 @@ package com.github.wxpayv3.service.impl;
 import com.alibaba.fastjson.JSONObject;
 import com.github.wxpayv3.config.WxPayConfig;
 import com.github.wxpayv3.entity.OrderInfo;
-import com.github.wxpayv3.enums.OrderStatus;
 import com.github.wxpayv3.enums.wxpay.WxApiType;
 import com.github.wxpayv3.enums.wxpay.WxNotifyType;
-import com.github.wxpayv3.mapper.WxPayMapper;
+import com.github.wxpayv3.service.OrderInfoService;
 import com.github.wxpayv3.service.WxPayService;
-import com.github.wxpayv3.util.OrderNoUtils;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
@@ -32,9 +30,8 @@ public class WxpayServiceImpl implements WxPayService {
 
     @Resource
     private WxPayConfig wxPayConfig;
-
     @Resource
-    private WxPayMapper wxPayMapper;
+    private OrderInfoService orderInfoService;
 
 
     /**
@@ -46,28 +43,13 @@ public class WxpayServiceImpl implements WxPayService {
     @Override
     public Map nativePay(Long productId) throws IOException {
 
-//        生成订单 存入数据库
-        OrderInfo orderInfo = new OrderInfo();
-        orderInfo.setOrderNo(OrderNoUtils.getOrderNo());
-        orderInfo.setTitle("TEST");
-        orderInfo.setProductId(productId);
-        orderInfo.setTotalFee(1);
-        orderInfo.setOrderStatus(OrderStatus.NOTPAY.getType());
-
-//        todo 用户id写死
-        orderInfo.setUserId(123456L);
-
-
-
+//        创建订单
+        OrderInfo orderInfo = orderInfoService.creatOrderInfo(productId);
 
 
 //        拼接请求地址
         HttpPost httpPost = new HttpPost(wxPayConfig.getDomain().concat(WxApiType.NATIVE_PAY.getType()));
-
-
-
         HashMap<String, Object> paramMap = new HashMap<>();
-
         paramMap.put("appid",wxPayConfig.getAppid());
         paramMap.put("mchid",wxPayConfig.getMchId());
         paramMap.put("description",orderInfo.getTitle());
@@ -77,13 +59,9 @@ public class WxpayServiceImpl implements WxPayService {
         map.put("total",orderInfo.getTotalFee());
         map.put("currency","CNY");
         paramMap.put("amount",map);
-
-
         String reqdata = JSONObject.toJSONString(paramMap);
 
-
         // 请求body参数
-
         StringEntity entity = new StringEntity(reqdata,"utf-8");
         entity.setContentType("application/json");
         httpPost.setEntity(entity);
@@ -92,8 +70,6 @@ public class WxpayServiceImpl implements WxPayService {
         //完成签名并执行请求
         CloseableHttpClient httpClient = wxPayConfig.getWxKeyClient();
         CloseableHttpResponse response = httpClient.execute(httpPost);
-
-
 
         try {
             int statusCode = response.getStatusLine().getStatusCode();
@@ -108,16 +84,14 @@ public class WxpayServiceImpl implements WxPayService {
             }
 
             Map resultMap = JSONObject.parseObject(resEntity, Map.class);
-
-
             String codeUrl = (String) resultMap.get("code_url");
 
-            HashMap<String, String> hashMap = new HashMap<>();
+//            保存二维码
+            orderInfoService.saveCodeUrl(orderInfo.getOrderNo(),codeUrl);
 
+            HashMap<String, String> hashMap = new HashMap<>();
             hashMap.put("codeUrl",codeUrl);
             hashMap.put("orderNo",orderInfo.getOrderNo());
-            orderInfo.setCodeUrl(codeUrl);
-            wxPayMapper.insert(orderInfo);
             return hashMap;
         }  finally {
             response.close();
