@@ -1,6 +1,7 @@
 package com.github.wxpayv3.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.github.wxpayv3.entity.OrderInfo;
 import com.github.wxpayv3.entity.Product;
 import com.github.wxpayv3.enums.OrderStatus;
@@ -12,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.List;
 
 /**
  * @Author wang
@@ -44,7 +46,7 @@ public class OrderInfoServiceImpl implements OrderInfoService {
         //        生成订单
         OrderInfo orderInfo = new OrderInfo();
         orderInfo.setOrderNo(OrderNoUtils.getOrderNo());
-        orderInfo.setTitle("TEST");
+        orderInfo.setTitle(product.getTitle());
         orderInfo.setProductId(productId);
         orderInfo.setTotalFee(product.getPrice());
         orderInfo.setOrderStatus(OrderStatus.NOTPAY.getType());
@@ -53,8 +55,6 @@ public class OrderInfoServiceImpl implements OrderInfoService {
         orderInfo.setUserId(123456L);
 
         orderInfoMapper.insert(orderInfo);
-
-
         return orderInfo;
     }
 
@@ -67,6 +67,15 @@ public class OrderInfoServiceImpl implements OrderInfoService {
         LambdaQueryWrapper<OrderInfo> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(OrderInfo::getOrderNo,orderNo);
         orderInfoMapper.update(orderInfo,wrapper);
+    }
+
+    @Override
+    public List<OrderInfo> orderList() {
+
+        QueryWrapper<OrderInfo> wrapper = new QueryWrapper<>();
+        wrapper.orderByDesc("create_time");
+        return orderInfoMapper.selectList(wrapper);
+
     }
 
     /**

@@ -2,6 +2,8 @@ package com.github.wxpayv3.service;
 
 import com.github.wxpayv3.entity.OrderInfo;
 
+import java.util.List;
+
 /**
  * @Author wang
  * @Date 2022/8/2 18:02
@@ -16,6 +18,17 @@ public interface OrderInfoService {
      OrderInfo creatOrderInfo(Long productId);
 
 
+    /**
+     * 保存二维码
+     * @param orderNo 订单编号
+     * @param codeUrl  二维码地址
+     */
      void saveCodeUrl(String orderNo,String codeUrl);
 
+
+    /**
+     * 获取订单列表
+     * @return
+     */
+    List<OrderInfo> orderList();
 }
