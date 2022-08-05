@@ -76,6 +76,7 @@ public class WxPayConfig {
      * @return CloseableHttpClient
      */
 
+    @Bean
     public CloseableHttpClient getWxKeyClient() {
 
         // 获取证书管理器实例
