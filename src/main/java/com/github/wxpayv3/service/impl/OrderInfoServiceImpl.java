@@ -79,6 +79,23 @@ public class OrderInfoServiceImpl implements OrderInfoService {
     }
 
     /**
+     * 更新订单状态
+     * @param outTradeNo
+     * @param
+     */
+    @Override
+    public void updateOrderStatus(String outTradeNo, OrderStatus orderStatus) {
+
+        LambdaQueryWrapper<OrderInfo> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(OrderInfo::getOrderNo,outTradeNo);
+        OrderInfo orderInfo = new OrderInfo();
+
+        orderInfo.setOrderStatus(orderStatus.getType());
+        orderInfoMapper.update(orderInfo,wrapper);
+
+    }
+
+    /**
      * 获取未支付订单
      * @param productId
      * @return

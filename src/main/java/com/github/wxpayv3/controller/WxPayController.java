@@ -2,6 +2,9 @@ package com.github.wxpayv3.controller;
 
 import com.alibaba.fastjson.JSONObject;
 import com.github.wxpayv3.config.WxPayConfig;
+import com.github.wxpayv3.enums.OrderStatus;
+import com.github.wxpayv3.service.OrderInfoService;
+import com.github.wxpayv3.service.PaymentInfoService;
 import com.github.wxpayv3.service.WxPayService;
 import com.github.wxpayv3.util.HttpUtils;
 import com.github.wxpayv3.vo.R;
@@ -40,6 +43,12 @@ public class WxPayController {
 
     @Resource
     private WxPayConfig wxPayConfig;
+
+    @Resource
+    private OrderInfoService orderInfoService;
+
+    @Resource
+    private PaymentInfoService paymentInfoService;
 
 
     /**
@@ -94,9 +103,21 @@ public class WxPayController {
 
 //           验签解析请求体
            Notification notification = notificationHandler.parse(builder);
-
            log.debug("验签===：{}",notification);
 
+
+//           解析密文
+           String decryptData = notification.getDecryptData();
+           log.debug("获取解密工具:{}",decryptData);
+
+           Map decryptDataMap = JSONObject.parseObject(decryptData, Map.class);
+
+//           获取商品订单id
+           String outTradeNo = decryptDataMap.get("out_trade_no").toString();
+//           更新订单支付状态
+           orderInfoService.updateOrderStatus(outTradeNo, OrderStatus.SUCCESS);
+//           日志记录
+           paymentInfoService.creatPaymentInfo(decryptDataMap);
 
 
            Map body = JSONObject.parseObject(data, Map.class);
