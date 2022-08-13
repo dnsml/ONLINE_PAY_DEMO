@@ -2,7 +2,9 @@ package com.github.wxpayv3.controller;
 
 import com.alibaba.fastjson.JSONObject;
 import com.github.wxpayv3.config.WxPayConfig;
+import com.github.wxpayv3.entity.OrderInfo;
 import com.github.wxpayv3.enums.OrderStatus;
+
 import com.github.wxpayv3.service.OrderInfoService;
 import com.github.wxpayv3.service.PaymentInfoService;
 import com.github.wxpayv3.service.WxPayService;
@@ -17,6 +19,7 @@ import com.wechat.pay.contrib.apache.httpclient.notification.NotificationRequest
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -24,8 +27,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * @Author wang
@@ -40,15 +45,14 @@ public class WxPayController {
 
     @Resource
     private WxPayService wxPayService;
-
     @Resource
     private WxPayConfig wxPayConfig;
-
     @Resource
     private OrderInfoService orderInfoService;
-
     @Resource
     private PaymentInfoService paymentInfoService;
+
+    private final ReentrantLock lock=new ReentrantLock();
 
 
     /**
@@ -68,9 +72,6 @@ public class WxPayController {
 
     /**
      * 接收微信通知
-     * @param request
-     * @param response
-     * @return
      */
    @PostMapping("/native/notify")
     public String nativeNotify(HttpServletRequest request, HttpServletResponse response){
@@ -114,12 +115,27 @@ public class WxPayController {
 
 //           获取商品订单id
            String outTradeNo = decryptDataMap.get("out_trade_no").toString();
-//           更新订单支付状态
-           orderInfoService.updateOrderStatus(outTradeNo, OrderStatus.SUCCESS);
-//           日志记录
-           paymentInfoService.creatPaymentInfo(decryptDataMap);
 
+        /*尝试获取锁，成功ture 失败立即返回false*/
+           if (lock.tryLock()) {
 
+               try {
+                   //           校验订单支付状态，接口幂等性
+                   //           处理重复通知
+                   OrderInfo orderInfo = orderInfoService.checkOrderStatus(outTradeNo);
+                   if (orderInfo != null) {
+                       //           更新订单支付状态
+                       orderInfoService.updateOrderStatus(outTradeNo, OrderStatus.SUCCESS);
+                       //           日志记录
+                       paymentInfoService.creatPaymentInfo(decryptDataMap);
+
+                   }
+               } finally {
+//                   主动释放锁
+                        lock.unlock();
+
+               }
+           }
            Map body = JSONObject.parseObject(data, Map.class);
 
            log.info("id:{}", body.get("id"));
@@ -137,5 +153,31 @@ public class WxPayController {
 
        }
    }
+
+
+    /**
+     * 取消订单
+     * @param orderNo 订单号
+     * @return
+     * @throws IOException
+     */
+   @PostMapping("/cancel/{orderNo}")
+   public R  cancelOrder(@PathVariable String orderNo) throws IOException {
+       wxPayService.cancelOrder(orderNo);
+       String message="订单已取消";
+       return R.ok(message);
+   }
+
+
+    /**
+     * 查单接口
+     */
+    @ApiOperation("查询订单")
+    @GetMapping("/query-order-status/{orderNo}")
+    public R queryOrder(@PathVariable String orderNo) throws IOException {
+
+        String str = wxPayService.queryOrder(orderNo);
+        return R.ok(str);
+    }
 
 }

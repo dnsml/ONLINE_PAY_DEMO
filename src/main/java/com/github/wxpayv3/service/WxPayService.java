@@ -1,6 +1,6 @@
 package com.github.wxpayv3.service;
 
-import com.baomidou.mybatisplus.extension.service.IService;
+
 
 import java.io.IOException;
 import java.util.Map;
@@ -12,4 +12,8 @@ import java.util.Map;
  */
 public interface WxPayService  {
     Map nativePay(Long productId) throws IOException;
+
+    void cancelOrder(String orderNo) throws IOException;
+
+    String queryOrder(String orderNo) throws IOException;
 }
