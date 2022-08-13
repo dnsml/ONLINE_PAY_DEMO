@@ -26,9 +26,23 @@ public class R {
     private Object data;
 
 
+    public static R ok(String message){
+        R r = new R();
+        r.setCode(200);
+        r.setMessage(message);
+        return r;
+    }
     public static R ok(Object data){
         R r = new R();
         r.setCode(200);
+        r.setMessage("成功");
+        r.setData(data);
+        return r;
+    }
+
+    public static R ok(Integer code,Object data){
+        R r = new R();
+        r.setCode(code);
         r.setMessage("成功");
         r.setData(data);
         return r;
