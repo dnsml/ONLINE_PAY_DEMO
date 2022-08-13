@@ -11,4 +11,6 @@ public interface PaymentInfoService {
 
     //    日志记录
     void creatPaymentInfo(Map map);
+
+    String queryOrder(String orderNo);
 }

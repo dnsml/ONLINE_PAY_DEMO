@@ -1,5 +1,6 @@
 package com.github.wxpayv3.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.github.wxpayv3.entity.PaymentInfo;
 import com.github.wxpayv3.enums.PayType;
 import com.github.wxpayv3.mapper.PaymentInfoMapper;
@@ -23,17 +24,17 @@ public class PaymentInfoServiceImpl implements PaymentInfoService {
 
     @Override
     public void creatPaymentInfo(Map map) {
-//        订单号
+//      订单号
         String outTradeNo = map.get("out_trade_no").toString();
-//        业务编号
+//      业务编号
         String transactionId = map.get("transaction_id").toString();
-        //支付类型
+//      支付类型
         String tradeType = map.get("trade_type").toString();
 //      交易状态
         String tradeState = map.get("trade_state").toString();
 //      用户支付金额
         Map amount = (Map) map.get("amount");
-//        用户实际支付金额
+//      用户实际支付金额
         String payerTotal = amount.get("payer_total").toString();
 
         BigDecimal total = new BigDecimal(payerTotal);
@@ -49,5 +50,19 @@ public class PaymentInfoServiceImpl implements PaymentInfoService {
 
         paymentInfoMapper.insert(paymentInfo);
 
+    }
+
+    @Override
+    public String queryOrder(String orderNo) {
+
+        LambdaQueryWrapper<PaymentInfo> wrapper = new LambdaQueryWrapper<>();
+
+        wrapper.eq(PaymentInfo::getOrderNo,orderNo);
+        PaymentInfo paymentInfo = paymentInfoMapper.selectOne(wrapper);
+
+        if (paymentInfo!=null){
+            return paymentInfo.getTransactionId();
+        }
+        return null;
     }
 }
