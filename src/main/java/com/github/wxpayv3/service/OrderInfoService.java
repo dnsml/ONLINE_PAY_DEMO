@@ -34,4 +34,10 @@ public interface OrderInfoService {
     List<OrderInfo> orderList();
 
     void updateOrderStatus(String outTradeNo, OrderStatus success);
+
+    OrderInfo checkOrderStatus(String outTradeNo);
+    OrderInfo OrderStatus(String outTradeNo);
+
+
+    List<OrderInfo> queryOvertimesOrders(int minutes);
 }

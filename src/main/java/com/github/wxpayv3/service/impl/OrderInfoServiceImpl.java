@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.github.wxpayv3.entity.OrderInfo;
 import com.github.wxpayv3.entity.Product;
 import com.github.wxpayv3.enums.OrderStatus;
+import com.github.wxpayv3.enums.wxpay.WxApiType;
 import com.github.wxpayv3.mapper.OrderInfoMapper;
 import com.github.wxpayv3.mapper.ProductMapper;
 import com.github.wxpayv3.service.OrderInfoService;
@@ -13,6 +14,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.List;
 
 /**
@@ -94,6 +97,36 @@ public class OrderInfoServiceImpl implements OrderInfoService {
         orderInfoMapper.update(orderInfo,wrapper);
 
     }
+
+    @Override
+    public OrderInfo checkOrderStatus(String outTradeNo) {
+        LambdaQueryWrapper<OrderInfo> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(OrderInfo::getOrderNo,outTradeNo);
+        wrapper.eq(OrderInfo::getOrderStatus,OrderStatus.NOTPAY.getType());
+        return orderInfoMapper.selectOne(wrapper);
+
+    }
+
+    @Override
+    public OrderInfo OrderStatus(String outTradeNo) {
+        LambdaQueryWrapper<OrderInfo> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(OrderInfo::getOrderNo,outTradeNo);
+        return orderInfoMapper.selectOne(wrapper);
+    }
+
+    @Override
+    public List<OrderInfo> queryOvertimesOrders(int minutes) {
+
+        Instant minus = Instant.now().minus(Duration.ofMinutes(minutes));
+
+        LambdaQueryWrapper<OrderInfo> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(OrderInfo::getOrderStatus,OrderStatus.NOTPAY.getType());
+        wrapper.ge(OrderInfo::getCreateTime,minus);
+
+       return orderInfoMapper.selectList(wrapper);
+
+    }
+
 
     /**
      * 获取未支付订单
