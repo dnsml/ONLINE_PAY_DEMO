@@ -1,6 +1,7 @@
 package com.github.wxpayv3.service;
 
 import com.github.wxpayv3.entity.OrderInfo;
+import com.github.wxpayv3.entity.RefundInfo;
 import com.github.wxpayv3.enums.OrderStatus;
 
 import java.util.List;
@@ -40,4 +41,6 @@ public interface OrderInfoService {
 
 
     List<OrderInfo> queryOvertimesOrders(int minutes);
+
+
 }

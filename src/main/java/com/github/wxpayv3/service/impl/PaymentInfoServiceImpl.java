@@ -5,6 +5,7 @@ import com.github.wxpayv3.entity.PaymentInfo;
 import com.github.wxpayv3.enums.PayType;
 import com.github.wxpayv3.mapper.PaymentInfoMapper;
 import com.github.wxpayv3.service.PaymentInfoService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -17,6 +18,7 @@ import java.util.Map;
  * @Describe
  */
 @Service
+@Slf4j
 public class PaymentInfoServiceImpl implements PaymentInfoService {
 
     @Resource
@@ -24,6 +26,9 @@ public class PaymentInfoServiceImpl implements PaymentInfoService {
 
     @Override
     public void creatPaymentInfo(Map map) {
+
+        log.info("订单信息:{}",map);
+
 //      订单号
         String outTradeNo = map.get("out_trade_no").toString();
 //      业务编号

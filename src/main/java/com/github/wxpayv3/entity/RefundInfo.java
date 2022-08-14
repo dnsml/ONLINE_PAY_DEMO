@@ -3,6 +3,8 @@ package com.github.wxpayv3.entity;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
+import java.math.BigDecimal;
+
 @Data
 @TableName("t_refund_info")
 public class RefundInfo extends BaseEntity{
@@ -13,9 +15,9 @@ public class RefundInfo extends BaseEntity{
 
     private String refundId;//支付系统退款单号
 
-    private Integer totalFee;//原订单金额(分)
+    private BigDecimal totalFee;//原订单金额(分)
 
-    private Integer refund;//退款金额(分)
+    private BigDecimal refund;//退款金额(分)
 
     private String reason;//退款原因
 

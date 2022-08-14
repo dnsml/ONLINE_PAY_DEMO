@@ -104,10 +104,10 @@ public class WxPayConfig {
 // ... 接下来，你仍然可以通过builder设置各种参数，来配置你的HttpClient
 
 // 通过WechatPayHttpClientBuilder构造的HttpClient，会自动的处理签名和验签，并进行证书自动更新
-//        CloseableHttpClient httpClient = builder.build();
+        CloseableHttpClient httpClient = builder.build();
 
 
-        return builder.build();
+        return httpClient;
 
 
     }

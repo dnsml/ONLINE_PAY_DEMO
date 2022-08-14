@@ -59,45 +59,56 @@ public class WxPayTask {
     @Scheduled(cron = "0/30 * * * * ?" )
     public void queryOvertimesOrders() throws IOException {
 
+            log.info("定时查单任务执行了...");
 
-        if (lock.tryLock()){
             //        查询创建超过五分种并未支付的订单
             List<OrderInfo> orderInfoList= orderInfoService.queryOvertimesOrders(5);
 
             log.warn("查询超时订单");
             log.warn("超时订单:{}",orderInfoList);
-            try {
+
                 for (OrderInfo orderInfo : orderInfoList) {
 
+                    log.info("遍历订单，获取详细信息");
                     String order = wxPayService.queryOrder(orderInfo.getOrderNo());
                     Map map = JSONObject.parseObject(order, Map.class);
 
-    //              获取商户订单号
+                    //              获取商户订单号
                     String outTradeNo = map.get("out_trade_no").toString();
-    //            获取该订单的支付状态
+                    //            获取该订单的支付状态
                     String tradeState = map.get("trade_state").toString();
 
-    //            如果是已经支付成功 就更新状态
-                    if (WxTradeState.SUCCESS.getType().equals(tradeState)){
-                        log.info("更新订单状态");
-                        //          更新订单状态
-                        orderInfoService.updateOrderStatus(outTradeNo,OrderStatus.SUCCESS);
-                        log.info("日志记录");
-                        paymentInfoService.creatPaymentInfo(map);
+
+                    if (lock.tryLock()){
+                        try {
+                            //            如果是已经支付成功 就更新状态
+                            if (WxTradeState.SUCCESS.getType().equals(tradeState)) {
+                                log.info("更新订单状态");
+                                //          更新订单状态
+                                orderInfoService.updateOrderStatus(outTradeNo, OrderStatus.SUCCESS);
+                                log.info("日志记录");
+                                paymentInfoService.creatPaymentInfo(map);
+                            }
+
+                            if (WxTradeState.NOTPAY.getType().equals(tradeState)) {
+                                log.info("未支付，取消该超时订单");
+                                wxPayService.cancelOrder(outTradeNo);
+                                orderInfoService.updateOrderStatus(outTradeNo, OrderStatus.CLOSED);
+
+                            }
+                        } finally {
+                            lock.unlock();
+                        }
+
                     }
 
-                    if (WxTradeState.NOTPAY.getType().equals(tradeState)){
-                        wxPayService.cancelOrder(outTradeNo);
-                        orderInfoService.updateOrderStatus(outTradeNo,OrderStatus.CLOSED);
-                        paymentInfoService.creatPaymentInfo(map);
-                    }
+
 
                 }
-            } finally {
-                    lock.unlock();
-            }
 
-        }
+
+
+
 
 
     }

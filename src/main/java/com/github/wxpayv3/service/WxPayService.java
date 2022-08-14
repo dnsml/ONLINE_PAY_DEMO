@@ -2,6 +2,7 @@ package com.github.wxpayv3.service;
 
 
 
+import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.Map;
 
@@ -16,4 +17,6 @@ public interface WxPayService  {
     void cancelOrder(String orderNo) throws IOException;
 
     String queryOrder(String orderNo) throws IOException;
+
+    String readRequest(HttpServletRequest request);
 }

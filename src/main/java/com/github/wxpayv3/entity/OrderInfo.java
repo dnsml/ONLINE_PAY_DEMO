@@ -3,6 +3,8 @@ package com.github.wxpayv3.entity;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
+import java.math.BigDecimal;
+
 @Data
 @TableName("t_order_info")
 public class OrderInfo  extends BaseEntity{
@@ -15,7 +17,7 @@ public class OrderInfo  extends BaseEntity{
 
     private Long productId;//支付产品id
 
-    private Integer totalFee;//订单金额(分)
+    private BigDecimal totalFee;//订单金额(分)
 
     private String codeUrl;//订单二维码连接
 

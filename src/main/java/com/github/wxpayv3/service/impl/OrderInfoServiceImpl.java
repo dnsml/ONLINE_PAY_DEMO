@@ -5,7 +5,6 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.github.wxpayv3.entity.OrderInfo;
 import com.github.wxpayv3.entity.Product;
 import com.github.wxpayv3.enums.OrderStatus;
-import com.github.wxpayv3.enums.wxpay.WxApiType;
 import com.github.wxpayv3.mapper.OrderInfoMapper;
 import com.github.wxpayv3.mapper.ProductMapper;
 import com.github.wxpayv3.service.OrderInfoService;
@@ -14,8 +13,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -51,7 +52,12 @@ public class OrderInfoServiceImpl implements OrderInfoService {
         orderInfo.setOrderNo(OrderNoUtils.getOrderNo());
         orderInfo.setTitle(product.getTitle());
         orderInfo.setProductId(productId);
-        orderInfo.setTotalFee(product.getPrice());
+        orderInfo.setCreateTime(new Date());
+
+        String price = product.getPrice().toString();
+
+        BigDecimal productPrice = new BigDecimal(price);
+        orderInfo.setTotalFee(productPrice);
         orderInfo.setOrderStatus(OrderStatus.NOTPAY.getType());
 
         //        todo 用户id写死
@@ -94,6 +100,7 @@ public class OrderInfoServiceImpl implements OrderInfoService {
         OrderInfo orderInfo = new OrderInfo();
 
         orderInfo.setOrderStatus(orderStatus.getType());
+        orderInfo.setUpdateTime(new Date());
         orderInfoMapper.update(orderInfo,wrapper);
 
     }
